@@ -15,23 +15,15 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 
-def image_processing_as_array(hand_img):
-    # Procesamos la imagen
-    # 1. Convertir a escala de grises
-    img_gray = cv2.cvtColor(hand_img, cv2.COLOR_BGR2GRAY)
-    # 3. Darle un contraste
-    img_gray = cv2.equalizeHist(img_gray)
-    # 4. Darle la vuelta a la imagen
-    # img_gray = cv2.flip(img_gray, 1)
-    # 5. Escalar la imagen
-    img_gray = cv2.resize(img_gray, (28, 28))
-    # 6. Convertir a un array
-    img_gray = np.array(img_gray).reshape(-1)
-    # 7. Normalizar los datos
-    img_gray = img_gray / 255.0
-    # 8. Convertir a un array de 3 dimensiones
-    img_gray = img_gray.reshape(-1, 28, 28, 1)
-    return img_gray
+def image_processing(img):
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_gray = cv2.GaussianBlur(img_gray, (5, 5), 0)
+    img_gray = cv2.resize(img_gray, (100, 100))
+    cv2.imshow('img_gray', img_gray)
+    img_array = np.array(img_gray)
+    img_array = img_array.reshape(-1, 100, 100, 1)
+    img_array = img_array / 255.0
+    return img_array
 
 
 while cap.isOpened():
@@ -66,7 +58,7 @@ while cap.isOpened():
     hand_img = image[start_x:end_x, start_y:end_y]
 
     # procesamos la imagen
-    img = image_processing_as_array(hand_img)
+    img = image_processing(hand_img)
 
     # predecimos la imagen
     input_shape = input_details[0]['shape']
