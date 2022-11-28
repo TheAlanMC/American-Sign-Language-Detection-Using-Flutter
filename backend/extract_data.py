@@ -1,101 +1,78 @@
-# Preprocesamiento del dataset para poder entrenar el modelo
 import cv2
+import mediapipe as mp
+import pandas as pd
 import os
 import numpy as np
-import pandas as pd
 
 
-def hand_cropping(file_path):
-    img = cv2.imread(file_path)
-    hsvim = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    lower = np.array([0, 48, 80], dtype="uint8")
-    upper = np.array([20, 255, 255], dtype="uint8")
-    skinMask = cv2.inRange(hsvim, lower, upper)
-    ret, thresh = cv2.threshold(skinMask, 100, 255, cv2.THRESH_BINARY)
-    # Detectamos los contornos
-    contours, hierarchy = cv2.findContours(
-        thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    if len(contours) > 5:
-        contours = max(contours, key=lambda x: cv2.contourArea(x))
-        box = cv2.boundingRect(contours)
-        x, y, w, h = box
+def image_processed(file_path):
+    hand_img = cv2.imread(file_path)
+    # procesamos la imagen
+    # 1. Convertir a RGB
+    img_rgb = cv2.cvtColor(hand_img, cv2.COLOR_BGR2RGB)
+    # 2. Dar la vuelta a la imagen
+    img_flip = cv2.flip(img_rgb, 1)
+    # 3. Mediapipe
+    mp_hands = mp.solutions.hands
+    hands = mp_hands.Hands(static_image_mode=True,
+                           max_num_hands=2, min_detection_confidence=0.7)
+    output = hands.process(img_flip)
+    hands.close()
 
-        # Recortamos la imagen como un cuadrado
-        if w > h:
-            y = y - int((w-h)/2)
-            if y < 0:
-                y = 0
-            h = w
-        else:
-            x = x - int((h-w)/2)
-            if x < 0:
-                x = 0
-            w = h
-        crop_img = img[y:y+h, x:x+w]
-        return crop_img
-    else:
-        return img
+    # Extraemos la información de las manos
+    try:
+        data = output.multi_hand_landmarks[0]
+        data = str(data)
+        data = data.strip().split('\n')
+        garbage = ['landmark {', '  visibility: 0.0', '  presence: 0.0', '}']
 
+        # Eliminamos los datos basura
+        without_garbage = []
+        for i in data:
+            if i not in garbage:
+                without_garbage.append(i)
 
-def image_processing(hand_img):
-    # 1. Convertir a escala de grises
-    img_gray = cv2.cvtColor(hand_img, cv2.COLOR_BGR2GRAY)
-    # 2. Aplicar un filtro de suavizado
-    img_gray = cv2.GaussianBlur(img_gray, (5, 5), 0)
-    # 3. Enfocamos en la piel
-    # img_gray = cv2.adaptiveThreshold(
-    #     img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
-    # # 4. Invertimos los colores
-    # img_gray = cv2.bitwise_not(img_gray)
-    # 5. Escalar la imagen a 100x100
-    img_gray = cv2.resize(img_gray, (100, 100))
-    # plt.imshow(img_gray, cmap='gray')
-    return img_gray
+        # Extraemos los datos de forma numérica
+        clean = []
+        for i in without_garbage:
+            i = i.strip()
+            clean.append(i[2:])
 
+        # Eliminamos el eje z
+        finalClean = []
+        for i in range(0, len(clean)):
+            if (i+1) % 3 != 0:
+                finalClean.append(float(clean[i]))
+        return(finalClean)
 
-def image_as_array(label, img):
-    # Convertimos la imagen a un array
-    img_array = np.array(img)
-    img_array = np.append(label, img_array)
-    return img_array
-
-
-def make_dataset(label, path):
-    # img = hand_cropping(path)
-    img = cv2.imread(path)
-    img = image_processing(img)
-    img = image_as_array(label, img)
-    return img
+    # Si no detecta ninguna mano, devuelve un array de ceros
+    except:
+        return(np.zeros([1, 42], dtype=int)[0])
 
 
 def make_csv():
-    px = 100
     mypath = 'dataset/Train'
-    file_name = open('american_train_100.csv', 'w')
-    # add header
-    file_name.write('label,')
-    for i in range(px*px-1):
-        file_name.write('pixel' + str(i) + ',')
-    file_name.write('pixel' + str(px*px-1) + '\n')
-
+    file_name = open('american_train.csv', 'w')
     # Recorremos las carpetas
     for root, dirs, files in os.walk(mypath):
-        # Ordenamos los archivos de forma alfabética
         dirs.sort()
         # Recorremos los archivos
-        i = 0
         for file in files:
             if file.endswith('.jpg'):
                 file_path = os.path.join(root, file)
                 # Nos quedamos con el nombre de la carpeta
                 label = file_path.split('/')[2].upper()
+                # Añadimos la etiqueta
+                file_name.write(label)
+                file_name.write(',')
                 # Procesamos la imagen
-                data = make_dataset(label, file_path)
-                np.savetxt(file_name, data.reshape(
-                    1, -1), delimiter=',', fmt='%s')
-                i += 1
-            if i == 1000:
-                break
+                data = image_processed(file_path)
+                for i in data:
+                    # Añadimos los datos al csv
+                    file_name.write(str(i))
+                    if i != data[-1]:
+                        file_name.write(',')
+                file_name.write('\n')
     # Cerramos el archivo
     file_name.close()
     print('CSV creado')

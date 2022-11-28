@@ -2,6 +2,7 @@ A
 B
 C
 D
+DEL
 E
 F
 G
@@ -12,7 +13,6 @@ K
 L
 M
 N
-NOTHING
 O
 P
 Q
