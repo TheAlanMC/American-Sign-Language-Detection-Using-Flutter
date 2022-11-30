@@ -56,14 +56,17 @@ class VideoTransformTrack(MediaStreamTrack):
     kind = "video"
 
     def __init__(self, track, transform):
-        super().__init__()  # don't forget this!
+        super().__init__()
         self.track = track
         self.transform = transform
 
     async def recv(self):
         frame = await self.track.recv()
         print(frame.width, frame.height)
+        w, h = frame.width, frame.height
         img = frame.to_ndarray(format="bgr24")
+        # accelerated color space conversion
+
         img = cv2.flip(img, 1)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img.flags.writeable = False
@@ -82,14 +85,15 @@ class VideoTransformTrack(MediaStreamTrack):
                 clf = joblib.load(
                     '/Users/chrisalanapazaaguilar/Documents/Others/ASL Recognition With Flutter/backend/model.pkl')
                 y_pred = clf.predict(cleaned_landmark)
-                if(str(y_pred[0]) != 'SPACE' or str(y_pred[0]) != 'DEL'):
-                    if(self.transform == "edges"):
-                        img = cv2.flip(img, 1)
-                    cv2.putText(img, str(
-                        y_pred[0]), (10, 100), cv2.FONT_HERSHEY_DUPLEX, 3, (52, 195, 235), 3)
-        else:
-            if(self.transform == "edges"):
                 img = cv2.flip(img, 1)
+                if(not(str(y_pred[0]) == 'SPACE' or str(y_pred[0]) == 'DEL')):
+                    cv2.putText(img, str(y_pred[0]), (int(w/2), 50),
+                                cv2.FONT_HERSHEY_SIMPLEX, 2, (52, 195, 235), 2, cv2.LINE_AA)
+
+            else:
+                img = cv2.flip(img, 1)
+        else:
+            img = cv2.flip(img, 1)
 
         new_frame = VideoFrame.from_ndarray(img, format="bgr24")
         new_frame.pts = frame.pts

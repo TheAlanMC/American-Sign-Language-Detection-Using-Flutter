@@ -20,7 +20,7 @@ hands = mp_hands.Hands(min_detection_confidence=0.7,
 
 cap = cv2.VideoCapture(0)
 clf = joblib.load(
-    '/Users/chrisalanapazaaguilar/Documents/Others/ASL Recognition With Flutter/ai/sckitlearn/model.pkl')
+    '/Users/chrisalanapazaaguilar/Documents/Others/ASL Recognition With Flutter/ai/scikit-learn/model.pkl')
 # limpieza de datos
 
 
