@@ -47,9 +47,9 @@ def data_clean(landmark):
         for i in range(0, len(clean)):
             if (i+1) % 3 != 0:
                 finalClean.append(float(clean[i]))
-        return([finalClean])
+        return ([finalClean])
     except:
-        return(np.zeros([1, 42], dtype=int)[0])
+        return (np.zeros([1, 42], dtype=int)[0])
 
 
 class VideoTransformTrack(MediaStreamTrack):
@@ -66,7 +66,6 @@ class VideoTransformTrack(MediaStreamTrack):
         w, h = frame.width, frame.height
         img = frame.to_ndarray(format="bgr24")
         # accelerated color space conversion
-
         img = cv2.flip(img, 1)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img.flags.writeable = False
@@ -85,16 +84,21 @@ class VideoTransformTrack(MediaStreamTrack):
                 clf = joblib.load(
                     '/Users/chrisalanapazaaguilar/Documents/Others/ASL Recognition With Flutter/backend/model.pkl')
                 y_pred = clf.predict(cleaned_landmark)
-                img = cv2.flip(img, 1)
-                if(not(str(y_pred[0]) == 'SPACE' or str(y_pred[0]) == 'DEL')):
-                    cv2.putText(img, str(y_pred[0]), (int(w/2), 50),
-                                cv2.FONT_HERSHEY_SIMPLEX, 2, (52, 195, 235), 2, cv2.LINE_AA)
-
+                if (self.transform == 'Principal'):
+                    img = cv2.flip(img, 1)
+                if (not (str(y_pred[0]) == 'SPACE' or str(y_pred[0]) == 'DEL')):
+                    if (w < 400 or h < 700):
+                        cv2.putText(img, str(y_pred[0]), (int(w/2)-25, 50),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2, cv2.LINE_AA)
+                    else:
+                        cv2.putText(img, str(y_pred[0]), (int(w/2)-50, 100),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 4, cv2.LINE_AA)
             else:
-                img = cv2.flip(img, 1)
+                if (self.transform == 'Principal'):
+                    img = cv2.flip(img, 1)
         else:
-            img = cv2.flip(img, 1)
-
+            if (self.transform == 'Principal'):
+                img = cv2.flip(img, 1)
         new_frame = VideoFrame.from_ndarray(img, format="bgr24")
         new_frame.pts = frame.pts
         new_frame.time_base = frame.time_base

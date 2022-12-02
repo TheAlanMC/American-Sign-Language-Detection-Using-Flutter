@@ -5,7 +5,6 @@ import joblib
 import numpy as np
 import os
 
-
 # temporizador para introducir cada letra
 mytext = ''
 prev_time = time.time()
@@ -52,10 +51,10 @@ def data_clean(landmark):
         for i in range(0, len(clean)):
             if (i+1) % 3 != 0:
                 finalClean.append(float(clean[i]))
-        return([finalClean])
+        return ([finalClean])
 
     except:
-        return(np.zeros([1, 42], dtype=int)[0])
+        return (np.zeros([1, 42], dtype=int)[0])
 
 
 while cap.isOpened():
@@ -91,7 +90,7 @@ while cap.isOpened():
 
         if cleaned_landmark:
             y_pred = clf.predict(cleaned_landmark)
-            if(str(y_pred[0]) == 'SPACE' and mytext != ''):
+            if (str(y_pred[0]) == 'SPACE' and mytext != ''):
                 prev_time = time.time()
                 mytext = ''
             elif (str(y_pred[0]) != 'SPACE'):
