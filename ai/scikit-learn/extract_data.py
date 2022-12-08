@@ -1,11 +1,12 @@
 import cv2
 import mediapipe as mp
-import pandas as pd  
+import pandas as pd
 import os
-import numpy as np 
+import numpy as np
+
 
 def image_processed(file_path):
-    
+
     hand_img = cv2.imread(file_path)
     # procesamos la imagen
     # 1. Convertir a RGB
@@ -15,7 +16,8 @@ def image_processed(file_path):
 
     mp_hands = mp.solutions.hands
     # Inicializamos las manos
-    hands = mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confidence=0.7)
+    hands = mp_hands.Hands(static_image_mode=True,
+                           max_num_hands=2, min_detection_confidence=0.7)
 
     # Resultados de la detección
     output = hands.process(img_flip)
@@ -24,14 +26,14 @@ def image_processed(file_path):
     # Extraemos la información de las manos
     try:
         data = output.multi_hand_landmarks[0]
-        #print(data)
+        # print(data)
         data = str(data)
         data = data.strip().split('\n')
         garbage = ['landmark {', '  visibility: 0.0', '  presence: 0.0', '}']
-        
+
         # Eliminamos los datos que no nos interesan
         without_garbage = []
-    
+
         for i in data:
             if i not in garbage:
                 without_garbage.append(i)
@@ -52,10 +54,11 @@ def image_processed(file_path):
 
     # Si no detecta ninguna mano, devuelve un array de ceros
     except:
-        return(np.zeros([1,42], dtype=int)[0])
+        return(np.zeros([1, 42], dtype=int)[0])
+
 
 def make_csv():
-    
+
     # Creamos un dataframe vacío
     mypath = 'asl_train'
     file_name = open('american_train_.csv', 'w')
@@ -67,7 +70,7 @@ def make_csv():
         for file in files:
             if file.endswith('.jpg'):
                 file_path = os.path.join(root, file)
-                print(file_path)
+                # print(file_path)
 
                 # Nos quedamos con el nombre de la carpeta
                 label = file_path.split('/')[1].upper()
@@ -75,11 +78,10 @@ def make_csv():
                 # Procesamos la imagen
                 data = image_processed(file_path)
 
-
                 for i in data:
                     # Añadimos los datos al csv
                     file_name.write(str(i))
-                    file_name.write(',') 
+                    file_name.write(',')
 
                 # Añadimos la etiqueta
                 file_name.write(label)
@@ -88,6 +90,7 @@ def make_csv():
     # Cerramos el archivo
     file_name.close()
     print('CSV creado')
-    
+
+
 if __name__ == "__main__":
     make_csv()
