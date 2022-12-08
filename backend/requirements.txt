@@ -1,0 +1,12 @@
+aiohttp
+aiohttp_cors
+aioice
+aiortc
+av
+cryptography
+gunicorn
+mediapipe
+numpy
+opencv-python
+pandas
+scikit-learn==1.1.3
