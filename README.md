@@ -5,7 +5,7 @@ ScreenCopy: https://github.com/Genymobile/scrcpy
 
 Anaconda: https://www.anaconda.com/products/distribution
 
-# Instalacion librerias
+# Instalación librerias
 cd backend
 
 pip install -r requirements.txt
