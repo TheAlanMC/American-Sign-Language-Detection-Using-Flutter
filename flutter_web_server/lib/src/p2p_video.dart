@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
 
-const String baseUrl = 'http://192.168.0.29:8080';
-// const String baseUrl = 'http://192.168.43.24:8080';
-// const String baseUrl = 'http://147.182.200.85:8080';
+//const String baseUrl = 'http://192.168.0.29:8080';
+const String baseUrl = 'http://192.168.43.24:8080';
+// const String baseUrl = 'http://172.20.10.2:8080';
 
 class P2PVideo extends StatefulWidget {
   const P2PVideo({Key? key}) : super(key: key);

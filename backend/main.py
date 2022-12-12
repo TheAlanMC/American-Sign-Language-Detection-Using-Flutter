@@ -65,7 +65,6 @@ class VideoTransformTrack(MediaStreamTrack):
         print(frame.width, frame.height)
         w, h = frame.width, frame.height
         img = frame.to_ndarray(format="bgr24")
-        # accelerated color space conversion
         img = cv2.flip(img, 1)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img.flags.writeable = False
